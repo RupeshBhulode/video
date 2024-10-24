@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Me</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <style>
+       body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh;
+    overflow-y: auto;
+}
+
+.card {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    max-width: 700px;
+    text-align: center;
+    margin-bottom: 20px;
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+h1, h2, p {
+    margin: 0;
+    color: #333;
+}
+
+/* Make the image rectangular */
+img {
+    width: 100%;
+    height: 250px; /* Adjust the height for a rectangular image */
+    object-fit: cover; /* Ensures the image covers the space */
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+a {
+    color: #007BFF;
+    text-decoration: none;
+}
+
+iframe {
+    width: 100%;
+    height: 200px;
+    border: none;
+    border-radius: 10px;
+    margin-top: 10px;
+}
+
+.video-section {
+    width: 100%;
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap; /* Allows the videos to wrap into rows */
+    gap: 20px; /* Space between videos */
+}
+
+.video-section iframe {
+    flex: 1;
+    min-width: 300px;
+}
+
+/* For desktop/laptop view, 3 videos per row */
+@media (min-width: 1024px) {
+    .video-section iframe {
+        width: calc(33.33% - 20px);
+        max-width: 320px; /* Three videos in a row */
+    }
+}
+
+/* For tablet/mobile view, 1 video per row */
+@media (max-width: 1023px) {
+    .video-section iframe {
+        width: 100%; /* One video per row */
+    }
+}
+
+.playlist-button {
+    cursor: pointer;
+    color: #007BFF;
+    text-decoration: underline;
+}
+
+.locked {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+/* Form styling */
+.user-form {
+    margin-bottom: 20px;
+}
+
+.user-form input {
+    display: block;
+    width: 100%;
+    margin: 5px 0;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.user-form label {
+    margin-top: 10px;
+    text-align: left;
+    display: block;
+}
+
+.app-description {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 20px;
+}
+
+h2 {
+    color: #4CAF50; /* A green color for headings */
+    margin-top: 20px;
+}
+
+ul, ol {
+    margin-left: 20px;
+}
+
+li {
+    margin: 10px 0; /* Space between list items */
+}.card1 {
+    display: flex;
+    align-items: flex-start;
+    border: 1px solid #ddd;
+    padding: 20px;
+    max-width: 600px;
+    margin: auto;
+    background-color: #f9f9f9;
+}
+
+.card1 img {
+    width: 400px;
+    height: 400px;
+    border-radius: 5%;
+    margin-right: 20px;
+}
+
+.card1 .text-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.card1 h1 {
+    margin: 0;
+    font-size: 24px;
+    color: #333;
+}
+
+.card1 p {
+    margin-top: 10px;
+    font-size: 16px;
+    color: #666;
+}
+
+
+    </style>
+
+    <script>
+        function toggleVideoSection(section) {
+            const videoSection = document.getElementById(section);
+            if (videoSection.style.display === "none" || videoSection.style.display === "") {
+                videoSection.style.display = "block";
+            } else {
+                videoSection.style.display = "none";
+            }
+        }
+
+        function initializePayment(playlistId, price, playlistName) {
+            // Get user details from the form
+            const userName = document.getElementById('userName').value;
+            const userEmail = document.getElementById('userEmail').value;
+            const userContact = document.getElementById('userContact').value;
+
+            if (!userName || !userEmail || !userContact) {
+                alert("Please fill out your details before proceeding with the payment.");
+                return;
+            }
+
+            var options = {
+                "key": "rzp_test_e0FC2fdSfMquoS", // Replace with your Razorpay key
+                "amount": price * 100, // Price in paise (100 INR = 10000 paise)
+                "currency": "INR",
+                "name": playlistName,
+                "description": "Payment for " + playlistName,
+                "image": "https://dummyimage.com/600x400/000/fff",
+               "handler": function (response) {
+            // Payment success handler
+            alert("Payment Succeeded");
+            unlockPlaylist(playlistId);
+            disablePaymentButton(playlistId);
+
+            // Send payment data to the server
+           console.log("Payment Successful");
+                    console.log("Name: " + userName);
+                    console.log("Email: " + userEmail);
+                    console.log("Contact: " + userContact);
+                    console.log("Amount: " + price);
+                    console.log("Product: " + playlistName);
+
+                    const paymentData = {
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        userName: userName,
+                        userEmail: userEmail,
+                        userContact: userContact,
+                        amount: price,
+                        playlistName: playlistName
+                    }; 
+                    console.log("Payment ID:", response.razorpay_payment_id);
+            fetch('http://localhost:3000/api/payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(paymentData),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        },
+                "prefill": {
+                    "name": userName,
+                    "email": userEmail,
+                    "contact": userContact
+                },
+                "theme": {
+                    "color": "#2300a3"
+                },
+                "modal": {
+                    "ondismiss": function() {
+                        alert("Payment was cancelled.");
+                    }
+                }
+            };
+
+            var rzp = new Razorpay(options);
+            rzp.on('payment.failed', function (response) {
+                alert("Payment Failed");
+            });
+            rzp.open();
+        }
+
+        function unlockPlaylist(playlistId) {
+            const playlist = document.getElementById(playlistId);
+            playlist.classList.remove('locked');
+            playlist.style.pointerEvents = "auto";
+            playlist.style.opacity = "1";
+
+            let unlockedPlaylists = localStorage.getItem('unlockedPlaylists');
+            unlockedPlaylists = unlockedPlaylists ? JSON.parse(unlockedPlaylists) : [];
+
+            if (!unlockedPlaylists.includes(playlistId)) {
+                unlockedPlaylists.push(playlistId);
+                localStorage.setItem('unlockedPlaylists', JSON.stringify(unlockedPlaylists));
+            }
+        }
+
+        function disablePaymentButton(playlistId) {
+            const button = document.querySelector(`input[onclick*="${playlistId}"]`);
+            if (button) {
+                button.value = "Already Paid";
+                button.disabled = true;
+                button.style.cursor = "not-allowed";
+            }
+        }
+
+        function checkUnlockedPlaylists() {
+            let unlockedPlaylists = localStorage.getItem('unlockedPlaylists');
+            unlockedPlaylists = unlockedPlaylists ? JSON.parse(unlockedPlaylists) : [];
+
+            unlockedPlaylists.forEach(playlistId => {
+                unlockPlaylist(playlistId);
+                disablePaymentButton(playlistId);
+            });
+        }
+
+        window.onload = checkUnlockedPlaylists;
+    </script>
+</head>
+
+<body>
+    <div class="card1">
+        <img src="/images/my_photo.jpg" alt="My Photo">
+        <div class="text-container">
+            <h1>Rupesh Bhulode</h1>
+            <p>
+                Hi, I am Rupesh. I am a B.Tech final year student specializing in Information Technology. I enjoy coding and am passionate about learning new technologies.
+            </p>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h2>My Projects</h2>
+        <h3>GramSamrtha - egramPancjyat application (Flutter & Firebase)</h3>
+        <div class="app-description">
+            <h2>Challenges Addressed</h2>
+            <p>
+                The app addresses multiple challenges in rural governance, including:
+            </p>
+            <ul>
+                <li><strong>Limited access to government services</strong></li>
+                <li><strong>Inefficient communication</strong> between villagers and Panchayat administrators</li>
+                <li><strong>Difficulty accessing agricultural markets</strong></li>
+            </ul>
+            <p>
+                The <strong>Agri-Shop module</strong> directly solves the problem of buying and selling agricultural products. It reduces the need for villagers to travel to distant markets and ensures they can conduct business digitally.
+            </p>
+        
+            <h2>Modules Overview</h2>
+            <p>The app includes the following modules:</p>
+            <ol>
+                <li>
+                    <strong>User Module:</strong> Handles user registration, login, and interaction with services.
+                </li>
+                <li>
+                    <strong>Admin Panel Module:</strong> Allows Panchayat officials to manage village services, emergency contacts, and government schemes.
+                </li>
+                <li>
+                    <strong>Agri-Shop Module:</strong> Facilitates buying and selling agricultural products with secure payments via Cashfree.
+                </li>
+                <li>
+                    <strong>Emergency Services Module:</strong> Provides access to local emergency contacts like hospitals, police, and fire stations.
+                </li>
+                <li>
+                    <strong>Payment Integration Module:</strong> Manages secure e-commerce transactions through Cashfree for the Agri-Shop.
+                </li>
+            </ol>
+        </div>
+        
+       
+        <a href="https://github.com/RupeshBhulode/Project" target="_blank">View on GitHub</a>
+        <iframe src="https://www.youtube.com/embed/your_video_id" allowfullscreen></iframe>
+    </div>
+
+    <div class="card video-section" style="display: block;">
+
+
+        <h2>YouTube Videos</h2>
+        <div>
+            <h3>Two Sum in c++ Explanation on Page + Live Code (in Hindi + English)</h3>
+            <iframe src="https://www.youtube.com/embed/7RtkhjEminc" allowfullscreen></iframe>
+
+        </div>
+        <div>
+            <h3>Valid Parenthesis - Stack - c++ Leetcode</h3>
+            <iframe src="https://www.youtube.com/embed/esaCLBdAplg" allowfullscreen></iframe>
+
+        </div>
+        <div>
+            <h3>Binary Tree Inorder Traversal | Leetcode 94 | c++ | faang</h3>
+            <iframe src="https://www.youtube.com/embed/JUnt79VV7p8" allowfullscreen></iframe>
+        </div>
+        <div>
+            <h3>Sqrt(x) - Square Root of no. in log(n) | Leetcode | c++</h3>
+            <iframe src="https://www.youtube.com/embed/xUKLC1s00gA" allowfullscreen></iframe>
+        </div>
+        <div>
+            <h3>Word Ladder- Breadth First Search - c++ | Leetcode 127</h3>
+            <iframe src="https://www.youtube.com/embed/PdRcadQMqLM" allowfullscreen></iframe>
+        </div>
+        <div>
+            <h3>Max Sum Path in Binary Tree | Binary Tree Most Asked | Leetcode c++</h3>
+            <iframe src="https://www.youtube.com/embed/E8h9bBeCU-w" allowfullscreen></iframe>
+        </div>
+        <div>
+            <h3>Climbing stair - Dynamic Programing - Leetcode 70- c++</h3>
+            <iframe src="https://www.youtube.com/embed/qxcjn87pWdI" allowfullscreen></iframe>
+        </div>
+        <div>
+            <h3>Largest Rectangle in Histogram | Maximum Rectangular Area in a Histogram | LeetCode c++</h3>
+            <iframe src="https://www.youtube.com/embed/HVsSqnbhsCo" allowfullscreen></iframe>
+        </div>
+        <div>
+            <h3>Longest Common Prefix - Leetcode 14 - c++ | Full solution</h3>
+            <iframe src="https://www.youtube.com/embed/SL-0Veblxuo" allowfullscreen></iframe>
+        </div>
+        <div>
+            <h3>Roman to Integer | Leetcode -13 | c++</h3>
+            <iframe src="https://www.youtube.com/embed/YfGbLdLDvnM" allowfullscreen></iframe>
+        </div>
+        <div>
+            <h3>Remove Duplicates from Sorted Array | C++ solution | Hindi + English</h3>
+            <iframe src="https://www.youtube.com/embed/xbVtTkWmNqA" allowfullscreen></iframe>
+        </div>
+        <div>
+            <h3>Plus One | LeetCode 66 | c++ | Hindi</h3>
+            <iframe src="https://www.youtube.com/embed/4mo4aUhydxc" allowfullscreen></iframe>
+        </div>
+        <div>
+            <h3>Max Points on a Line | LEETCODE HARD | Geomentry + code + explaination | c++</h3>
+            <iframe src="https://www.youtube.com/embed/ZRpKQeEb1Yw" allowfullscreen></iframe>
+        </div>
+        <div>
+            <h3>Minimum Window Substring | Variable Size Sliding Window</h3>
+            <iframe src="https://www.youtube.com/embed/dLVWWRo4Si4" allowfullscreen></iframe>
+        </div>
+        
+        <!-- Add more video sections as needed -->
+    </div>
+
+
+
+
+
+    <div class="card">
+        <h2>Paid Playlists</h2>
+
+        <!-- User details form -->
+        <div class="user-form">
+            <label for="userName">Name:</label>
+            <input type="text" id="userName" placeholder="Your Name">
+            <label for="userEmail">Email:</label>
+            <input type="email" id="userEmail" placeholder="your-email@example.com">
+            <label for="userContact">Contact:</label>
+            <input type="tel" id="userContact" placeholder="9999999999">
+        </div>
+
+        <!-- Dynamic Programming Playlist -->
+        <div>
+            <h3 class="playlist-button" onclick="toggleVideoSection('dpPlaylist')">Dynamic Programming Playlist</h3>
+            <p>Explore a comprehensive collection of dynamic programming problems and solutions to enhance your skills.</p>
+            <div id="dpPlaylist" class="video-section locked">
+                <h4>Dynamic Programming Videos</h4>
+               
+                <div>
+                    <h3>Climbing Stairs | Dynamic Programming | Leetcode 70 | C++</h3>
+                    <iframe src="https://www.youtube.com/embed/-e4yffGplEY" allowfullscreen></iframe>
+                </div>
+                <div>
+                    <h3>House Robber - Dynamic Programing - Leetcode 198 - C++</h3>
+                    <iframe src="https://www.youtube.com/embed/KB0azkfZB2Y" allowfullscreen></iframe>
+                </div>
+                <div>
+                    <h3>Best Time To Buy and Sell Stock 2 - Recursion - Top Down - Bottom Up</h3>
+                    <iframe src="https://www.youtube.com/embed/Y_zNj7ZZaSg" allowfullscreen></iframe>
+                </div>
+                <div>
+                    <h3>Word Break - Recursion - Top Down - Bottom Up - Leetcode 139 - C++</h3>
+                    <iframe src="https://www.youtube.com/embed/n4VZZKP1cu0" allowfullscreen></iframe>
+                </div>
+                <div>
+                    <h3>Coin Change - Recursive - Top Down - Bottom Up - Greedy- Dynamic Programmin</h3>
+                    <iframe src="https://www.youtube.com/embed/ic0zRQPjMNA" allowfullscreen></iframe>
+                </div>
+                <div>
+                    <h3>Coin Change 2 - Recursive - Top Down - DP - C++ - Leetcode 518</h3>
+                    <iframe src="https://www.youtube.com/embed/2y73Gz6eXuw" allowfullscreen></iframe>
+                </div>
+                <div>
+                    <h3>Coin Change 2 - Include Exclude- Top Down - Leetcode - C++</h3>
+                    <iframe src="https://www.youtube.com/embed/Py4LziEfHVU" allowfullscreen></iframe>
+                </div>
+                <div>
+                    <h3>Perfect Square - Top Down - Bottom Up - Dynamic Programming - Leetcode - C++</h3>
+                    <iframe src="https://www.youtube.com/embed/PkhJ32mL878" allowfullscreen></iframe>
+                </div>
+
+                <div>
+                    <h3>Partition Equal Subset Sum - Recursion - Top Down - Dynamic Programming-C++ -</h3>
+                    <iframe src="https://www.youtube.com/embed/LR-oSEfIClM" allowfullscreen></iframe>
+                </div>
+                <div>
+                    <h3>Decode Ways - Dynamic Programming - Recursion - LeetCode 91 - C++</h3>
+                    <iframe src="https://www.youtube.com/embed/NHHZZCWTlbQ" allowfullscreen></iframe>
+                </div>
+                <div>
+                    <h3>Unique Paths - Dynamic Programming - Recursion - Top Down - Bottom Up- Leetcode</h3>
+                    <iframe src="https://www.youtube.com/embed/U2jqQ4qumV4" allowfullscreen></iframe>
+                </div>
+                <div>
+                    <h3>Longest Increasing Subsequence - Dynamic Programing - Recursion - C++</h3>
+                    <iframe src="https://www.youtube.com/embed/GQoJrD-MHV4" allowfullscreen></iframe>
+                </div>
+                <div>
+                    <h3>Edit Distance - Dynamic Programming Explained | Leetcode 72 | C++ Solution</h3>
+                    <iframe src="https://www.youtube.com/embed/EeIrFtoauTU" allowfullscreen></iframe>
+                </div>
+            </div>
+            <input type="button" value="Pay Now" onclick="initializePayment('dpPlaylist', 200, 'Dynamic Programming Playlist')">
+        </div>
+    <!-- Backtracking Playlist -->
+    <div>
+        <h3 class="playlist-button" onclick="toggleVideoSection('backtrackingPlaylist')">Backtracking Playlist</h3>
+        <p>Dive into various backtracking problems and improve your problem-solving strategies.</p>
+        <div id="backtrackingPlaylist" class="video-section locked">
+            <h4>Backtracking Videos</h4>
+            <div>
+                <h3>Introduction to Backtraking | Backtraking Algorithm | N-Queens | DAA</h3>
+                <iframe src="https://www.youtube.com/embed/2Nf2juaO4H4" allowfullscreen></iframe>
+            </div>
+            <div>
+                <h3>Backtraking : Basic Structure of Problems and Solutions | leetcode</h3>
+                <iframe src="https://www.youtube.com/embed/bKZebM1-bBU" allowfullscreen></iframe>
+            </div>
+            <div>
+                <h3>Subsets - Explaination + code | Leetcode 78 | c++</h3>
+                <iframe src="https://www.youtube.com/embed/FsdaPlZR524" allowfullscreen></iframe>
+            </div>
+            <div>
+                <h3>Subsets II - Backtraking - Leetcode 90 - c++</h3>
+                <iframe src="https://www.youtube.com/embed/GcF04bvyiiM" allowfullscreen></iframe>
+            </div>
+            <div>
+                <h3>Combinations - Backtraking - Leetcode 77- C++</h3>
+                <iframe src="https://www.youtube.com/embed/Upo1hh6NlOc" allowfullscreen></iframe>
+            </div>
+            <div>
+                <h3>Letter Combinations of a Phone Number | Backtraking | Leetcode | c++</h3>
+                <iframe src="https://www.youtube.com/embed/ceE3zKYUPiQ" allowfullscreen></iframe>
+            </div>
+            <div>
+                <h3>Generate Parenthesis - Backtraking - c++ - Leetcode 22</h3>
+                <iframe src="https://www.youtube.com/embed/bp-XypR7I8k" allowfullscreen></iframe>
+            </div>
+            <div>
+                <h3>Combination Sum - Backtraking - Leetcode 39 - c++</h3>
+                <iframe src="https://www.youtube.com/embed/rF3a-Zo29Wo" allowfullscreen></iframe>
+            </div>
+            <div>
+                <h3>Permutations - Backtraking - c++ - Leetcode 46</h3>
+                <iframe src="https://www.youtube.com/embed/lGh9Ec4VC54" allowfullscreen></iframe>
+            </div>
+            <div>
+                <h3>Word Search - Backtracking - C++ - Leetcode 79</h3>
+                <iframe src="https://www.youtube.com/embed/byq6YgZd3eA" allowfullscreen></iframe>
+            </div>
+            <div>
+                <h3>Palindrome Partitioning - Backtracking - C++ -Leetcode 131</h3>
+                <iframe src="https://www.youtube.com/embed/ATCogNFSw-4" allowfullscreen></iframe>
+            </div>
+          
+        </div>
+        <input type="button" value="Pay Now" onclick="initializePayment('backtrackingPlaylist', 150, 'Backtracking Playlist')">
+    </div>
+</div>
+
+<a href="/b">
+    <button>Go to Data Section</button>
+</a>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</body>
+
+</html>
+
+
+

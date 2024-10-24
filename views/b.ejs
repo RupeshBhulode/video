@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Data</title>
+</head>
+<body>
+    <h1>Payment Data</h1>
+    
+    <ul>
+        <% payments.forEach(payment => { %>
+            <li>
+                Payment ID: <%= payment.razorpay_payment_id %> <br>
+                User Name: <%= payment.userName %> <br>
+                User Email: <%= payment.userEmail %> <br>
+                User Contact: <%= payment.userContact %> <br>
+                Amount: <%= payment.amount %> <br>
+                Playlist Name: <%= payment.playlistName %> <br>
+                Created At: <%= payment.createdAt.toDateString() %>
+            </li>
+            <hr>
+        <% }); %>
+    </ul>
+
+</body>
+</html>
